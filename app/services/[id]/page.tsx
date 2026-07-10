@@ -120,7 +120,7 @@ const SERVICES_DETAIL_DATA: Record<string, {
 
 function SocialMediaPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#06B6D4" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#06B6D4", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/social_media.png" alt="Social Media Dashboard" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -130,7 +130,7 @@ function SocialMediaPlaceholder() {
 
 function SeoPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#10B981" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#10B981", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/seo_analytics.png" alt="SEO Analytics" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -140,7 +140,7 @@ function SeoPlaceholder() {
 
 function AdsCampaignPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3]" style={{ "--glow-color": "#F59E0B" } as React.CSSProperties}>
+    <div className="blob-card" style={{ "--glow-color": "#F59E0B", aspectRatio: "4/3" } as React.CSSProperties}>
       {/* Glass Pane Content */}
       <div className="bg-pane p-6 flex flex-col justify-between">
         {/* Ads Campaign Details */}
@@ -180,7 +180,7 @@ function AdsCampaignPlaceholder() {
 
 function WebDevPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#3B82F6" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#3B82F6", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/web_dev.png" alt="Web Development" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -190,7 +190,7 @@ function WebDevPlaceholder() {
 
 function SoftwareDevPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3]" style={{ "--glow-color": "#8B5CF6" } as React.CSSProperties}>
+    <div className="blob-card" style={{ "--glow-color": "#8B5CF6", aspectRatio: "4/3" } as React.CSSProperties}>
       {/* Glass Pane Content */}
       <div className="bg-pane p-6 flex flex-col justify-between">
         {/* Terminal Header */}
@@ -219,7 +219,7 @@ function SoftwareDevPlaceholder() {
 
 function MobileDevPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3]" style={{ "--glow-color": "#EC4899" } as React.CSSProperties}>
+    <div className="blob-card" style={{ "--glow-color": "#EC4899", aspectRatio: "4/3" } as React.CSSProperties}>
       {/* Glass Pane Content */}
       <div className="bg-pane p-6 flex flex-col justify-between items-center">
         {/* Mobile Device Frame UI */}
@@ -248,7 +248,7 @@ function MobileDevPlaceholder() {
 
 function VideoProdPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#EF4444" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#EF4444", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/video_prod.png" alt="Video Production" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -258,7 +258,7 @@ function VideoProdPlaceholder() {
 
 function GraphicDesignPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3]" style={{ "--glow-color": "#EC4899" } as React.CSSProperties}>
+    <div className="blob-card" style={{ "--glow-color": "#EC4899", aspectRatio: "4/3" } as React.CSSProperties}>
       {/* Glass Pane Content */}
       <div className="bg-pane p-6 flex flex-col justify-between">
         {/* Vector Grid mockup */}
@@ -284,7 +284,7 @@ function GraphicDesignPlaceholder() {
 
 function CopywritingPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3]" style={{ "--glow-color": "#F59E0B" } as React.CSSProperties}>
+    <div className="blob-card" style={{ "--glow-color": "#F59E0B", aspectRatio: "4/3" } as React.CSSProperties}>
       {/* Glass Pane Content */}
       <div className="bg-pane p-6 flex flex-col justify-between">
         {/* Header toolbar */}
@@ -312,7 +312,7 @@ function CopywritingPlaceholder() {
 
 function LogoPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#0891B2" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#0891B2", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/brand_logo.png" alt="Sleek 3D Corporate Logo" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -322,7 +322,7 @@ function LogoPlaceholder() {
 
 function PosterPlaceholder() {
   return (
-    <div className="blob-card aspect-[3/4] max-w-sm w-full" style={{ "--glow-color": "#4F46E5" } as React.CSSProperties}>
+    <div className="blob-card max-w-sm w-full" style={{ "--glow-color": "#4F46E5", aspectRatio: "3/4" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/brand_poster.png" alt="High Fashion Poster Mockup" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -332,7 +332,7 @@ function PosterPlaceholder() {
 
 function ContentPlaceholder() {
   return (
-    <div className="blob-card aspect-[4/3] w-full" style={{ "--glow-color": "#F43F5E" } as React.CSSProperties}>
+    <div className="blob-card w-full" style={{ "--glow-color": "#F43F5E", aspectRatio: "4/3" } as React.CSSProperties}>
       <div className="bg-pane w-full h-full p-1 flex items-center justify-center overflow-hidden relative">
         <img src="/brand_content.png" alt="Creative Studio Desk" className="w-full h-full object-cover rounded-[inherit]" />
       </div>
@@ -433,25 +433,27 @@ export default function ServiceDetail() {
           <Link href="/">
             <Logo className={!isLightTheme ? "text-white" : "text-slate-900"} />
           </Link>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/about"
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
-            >
-              About
-            </Link>
-            <Link
-              href={`/services#${id}`}
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
-            >
-              Services
-            </Link>
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <Link
+                href="/"
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
+              >
+                Home
+              </Link>
+              <Link
+                href="/about"
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
+              >
+                About
+              </Link>
+              <Link
+                href={`/services#${id}`}
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition cursor-pointer ${linkColor}`}
+              >
+                Services
+              </Link>
+            </div>
             <Link
               href="/#contact"
               className="uiverse-btn pointer-events-auto"
