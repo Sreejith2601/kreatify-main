@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, memo } from "react"
+import { useMemo, useRef, memo, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Environment } from "@react-three/drei"
 import * as THREE from "three"
@@ -142,34 +142,175 @@ const sphereFragmentShader = `
   }
 `
 
-function BaseSphere() {
-  const meshRef = useRef<THREE.Mesh>(null)
+// ─── Interactive Ripple Particle Sphere ───────────────────────────────────────
+const rippleVertexShader = `
+  uniform float uTime;
+  uniform float uTheme;
+  uniform float uDarkenOrb;
+  uniform vec3 uSplashPositions[5];
+  uniform float uSplashTimes[5];
 
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.12
-      meshRef.current.rotation.x += delta * 0.05
+  varying vec3 vColor;
+  varying float vAlpha;
+
+  void main() {
+    vec3 pos = position;
+    vec3 normalDir = normalize(position);
+
+    float totalWave = 0.0;
+    
+    // Sum up the wave displacements from the recent splashes
+    for (int i = 0; i < 5; i++) {
+      float timeElapsed = uTime - uSplashTimes[i];
+      // Only process active splashes (positive time, fades out after ~4 secs)
+      if (timeElapsed > 0.0 && timeElapsed < 4.0) {
+        float dist = distance(pos, uSplashPositions[i]);
+        
+        // Decaying sine wave: travels outward (dist * freq - time * speed)
+        float phase = (dist * 4.0 - timeElapsed * 15.0);
+        
+        // Envelope: decays over time and distance from impact
+        float envelope = exp(-timeElapsed * 1.5) * exp(-dist * 1.5);
+        
+        totalWave += sin(phase) * envelope * 0.45;
+      }
     }
+
+    pos += normalDir * totalWave;
+
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+
+    // Attenuate dot size based on distance (moderately sized dots)
+    gl_PointSize = 26.0 * (1.0 / -mvPosition.z);
+
+    // Bronze / Copper transition
+    vec3 bronze = vec3(0.72, 0.45, 0.20); 
+    vec3 copper = vec3(0.44, 0.22, 0.10);
+    vec3 darkBronze = vec3(0.08, 0.04, 0.02);
+    vColor = uDarkenOrb > 0.5 ? darkBronze : mix(bronze, copper, uTheme); 
+    
+    // Per-particle twinkle: pseudo-random phase offset based on starting position
+    float randomPhase = fract(sin(dot(position.xyz, vec3(12.9898, 78.233, 45.164))) * 43758.5453) * 6.2831;
+    float twinkle = sin(uTime * 2.0 + randomPhase) * 0.5 + 0.5;
+    
+    // Mix between a base ambient opacity and full sparkle
+    vAlpha = mix(0.15, 0.85, twinkle);
+  }
+`;
+
+const rippleFragmentShader = `
+  varying vec3 vColor;
+  varying float vAlpha;
+
+  void main() {
+    // Soft circular dot with radial alpha falloff
+    float distToCenter = distance(gl_PointCoord, vec2(0.5));
+    if (distToCenter > 0.5) discard;
+    
+    float radialAlpha = (0.5 - distToCenter) * 2.0; 
+    radialAlpha = pow(radialAlpha, 1.5); // Soften the edge falloff
+
+    gl_FragColor = vec4(vColor, vAlpha * radialAlpha);
+  }
+`;
+
+function RippleParticleSphere({ darkenOrb }: { darkenOrb?: boolean }) {
+  const meshRef = useRef<THREE.Points>(null)
+  const materialRef = useRef<THREE.ShaderMaterial>(null)
+  const { camera } = useThree()
+
+  // Track the last 5 splash events
+  const splashes = useRef(Array.from({ length: 5 }, () => ({ pos: new THREE.Vector3(), time: -999 })))
+  const splashIdx = useRef(0)
+  
+  // Track global mouse
+  const mouse = useRef(new THREE.Vector2(-9999, -9999))
+  
+  const themeSmooth = useRef(0)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
+      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [])
+
+  const raycaster = useMemo(() => new THREE.Raycaster(), [])
+  // The mathematical sphere used for instant raycasting (same radius as visual sphere)
+  const mathSphere = useMemo(() => new THREE.Sphere(new THREE.Vector3(0,0,0), 2.3), [])
+
+  useFrame((state, delta) => {
+    if (!meshRef.current || !materialRef.current) return;
+    
+    // Rotate the particle sphere to give it ambient life
+    meshRef.current.rotation.y += delta * 0.12
+    meshRef.current.rotation.x += delta * 0.05
+
+    // Global Time Uniform
+    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
+
+    // Theme Lerp: Gold/Bronze on slide 1 (left = 50), slide 2 (left = 85), and slide 3 (left = 15), silver otherwise
+    const left = orbTransformRef.current?.left ?? 50
+    const targetTheme = (Math.abs(left - 50) < 5 || Math.abs(left - 85) < 5 || Math.abs(left - 15) < 5) ? 1.0 : 0.0
+    themeSmooth.current = THREE.MathUtils.lerp(themeSmooth.current, targetTheme, 0.08)
+    materialRef.current.uniforms.uTheme.value = themeSmooth.current
+
+    // Manual Raycasting against the invisible math sphere
+    raycaster.setFromCamera(mouse.current, camera)
+    
+    // Transform math sphere into world space to match the rotating/scaled mesh
+    const worldSphere = mathSphere.clone().applyMatrix4(meshRef.current.matrixWorld)
+    const hit = raycaster.ray.intersectSphere(worldSphere, new THREE.Vector3())
+
+    if (hit) {
+      // Transform hit point back into local space of the mesh
+      const localHit = hit.clone().applyMatrix4(meshRef.current.matrixWorld.clone().invert())
+      
+      const currentSplash = splashes.current[splashIdx.current]
+      
+      // If the cursor has moved a reasonable distance from the last splash, create a new one
+      if (localHit.distanceTo(currentSplash.pos) > 0.4) {
+        splashIdx.current = (splashIdx.current + 1) % 5
+        splashes.current[splashIdx.current] = {
+          pos: localHit,
+          time: state.clock.elapsedTime
+        }
+      }
+    }
+
+    // Sync arrays to shader uniforms
+    const positions = splashes.current.map(s => s.pos)
+    const times = splashes.current.map(s => s.time)
+    materialRef.current.uniforms.uSplashPositions.value = positions
+    materialRef.current.uniforms.uSplashTimes.value = times
+    materialRef.current.uniforms.uDarkenOrb.value = darkenOrb ? 1.0 : 0.0
   })
 
+  // Dense geometry for detailed wave displacement
+  const geometry = useMemo(() => new THREE.SphereGeometry(2.3, 128, 128), [])
+
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[2.3, 128, 128]} />
-      <meshPhysicalMaterial
-        transmission={0.65}
-        thickness={0.8}
-        roughness={0.06}
-        ior={1.18}
-        clearcoat={1.0}
-        clearcoatRoughness={0.02}
-        envMapIntensity={2.5}
-        color="#ffb59a"
-        attenuationColor="#f26f52"
-        attenuationDistance={0.6}
+    <points ref={meshRef}>
+      <primitive object={geometry} attach="geometry" />
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={rippleVertexShader}
+        fragmentShader={rippleFragmentShader}
+        uniforms={{
+          uTime: { value: 0 },
+          uTheme: { value: 0 },
+          uDarkenOrb: { value: darkenOrb ? 1.0 : 0.0 },
+          uSplashPositions: { value: Array(5).fill(new THREE.Vector3()) },
+          uSplashTimes: { value: Array(5).fill(-999) }
+        }}
         transparent
         depthWrite={false}
+        blending={THREE.AdditiveBlending}
       />
-    </mesh>
+    </points>
   )
 }
 
@@ -239,17 +380,24 @@ const particleVertexShader = `
 
 const particleFragmentShader = `
   uniform sampler2D uMap;
+  uniform float uTheme;
+  uniform float uDarkenOrb;
   varying vec3 vColor;
 
   void main() {
     vec4 texColor = texture2D(uMap, gl_PointCoord);
     if (texColor.a < 0.01) discard;
-    gl_FragColor = vec4(vColor * texColor.rgb, texColor.a * 0.85);
+    
+    // Smooth transition to rich bronze/copper tones
+    vec3 bronzeColor = mix(vec3(0.35, 0.20, 0.08), vec3(0.72, 0.45, 0.20), length(vColor) * 0.5);
+    vec3 finalColor = uDarkenOrb > 0.5 ? vec3(0.08, 0.04, 0.02) : mix(vColor, bronzeColor, uTheme);
+
+    gl_FragColor = vec4(finalColor * texColor.rgb, texColor.a * 0.85);
   }
 `;
 
 // ─── Fix 1: Fluid-Like Swirling Particles with Dense Core ───────────────────
-function InteriorParticles() {
+function InteriorParticles({ darkenOrb }: { darkenOrb?: boolean }) {
   const ref = useRef<THREE.Points>(null)
   const lastLeft = useRef(orbTransformRef.current.left)
   const velocity = useRef(0)
@@ -266,10 +414,10 @@ function InteriorParticles() {
     const colors = new Float32Array(count * 3)
     const radius = 2.34
 
-    const cRed     = new THREE.Color("#6b0c0c")  // Deep dark red
-    const cRust    = new THREE.Color("#8f1313")  // Rich dark crimson
-    const cCopper  = new THREE.Color("#c22727")  // Ruby red highlight
-    const cDark    = new THREE.Color("#300303")  // Intense black-maroon core
+    const cDeepOcean   = new THREE.Color("#2a1506") // Deep Bronze
+    const cDeepEmerald = new THREE.Color("#8a4a1e") // Copper
+    const cSilver      = new THREE.Color("#d4a574") // Light Gold
+    const cDark        = new THREE.Color("#170a02") // Very Dark Bronze
 
     // Dense core position (slightly below center)
     const coreX = 0, coreY = -0.4, coreZ = 0
@@ -321,17 +469,17 @@ function InteriorParticles() {
         
         const c = new THREE.Color()
         if (coreIntensity > 0.5) {
-          // Dense core: dark crimson to red
-          c.copy(cDark).lerp(cRed, Math.random() * 0.4)
+          // Dense core: dark teal
+          c.copy(cDark).lerp(cDeepOcean, Math.random() * 0.4)
         } else if (noise > 0.3) {
-          // Dense swirl bands: rust/red
-          c.copy(cRust).lerp(cRed, Math.random() * 0.5)
+          // Dense swirl bands: deep emerald
+          c.copy(cDeepEmerald).lerp(cDeepOcean, Math.random() * 0.5)
         } else {
-          // Sparse areas: copper/orange, some white sparkle
+          // Sparse areas: silver/emerald highlight
           if (Math.random() < 0.15) {
-            c.set("#ffffff")  // Occasional white sparkle
+            c.set("#E4E9E9")  // Occasional bright silver sparkle
           } else {
-            c.copy(cCopper).lerp(cRust, Math.random() * 0.6)
+            c.copy(cSilver).lerp(cDeepEmerald, Math.random() * 0.6)
           }
         }
 
@@ -350,15 +498,19 @@ function InteriorParticles() {
     }
   }, [])
 
+  const themeSmooth = useRef(0)
+
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uSize: { value: 0.14 },
+      uTheme: { value: 0 },
+      uDarkenOrb: { value: darkenOrb ? 1.0 : 0.0 },
+      uSize: { value: 0.085 }, // Slightly bigger swirling particles (up from 0.055)
       uScrollVelocity: { value: 0 },
       uMouse: { value: new THREE.Vector2(0, 0) },
       uMap: { value: circleTexture },
     }),
-    [circleTexture]
+    [circleTexture, darkenOrb]
   )
 
   useFrame((state, delta) => {
@@ -383,10 +535,21 @@ function InteriorParticles() {
         velocity.current = THREE.MathUtils.lerp(velocity.current, 0, 0.1)
       }
       
+      // Theme Lerp: Gold/Bronze on slide 1 (left = 50), slide 2 (left = 85), and slide 3 (left = 15), standard otherwise
+      const left = orbTransformRef.current?.left ?? 50
+      const targetTheme = (Math.abs(left - 50) < 5 || Math.abs(left - 85) < 5 || Math.abs(left - 15) < 5) ? 1.0 : 0.0
+      themeSmooth.current = THREE.MathUtils.lerp(themeSmooth.current, targetTheme, 0.08)
+
       const material = ref.current.material as THREE.ShaderMaterial
       if (material) {
         if (material.uniforms.uTime) {
           material.uniforms.uTime.value = state.clock.elapsedTime
+        }
+        if (material.uniforms.uTheme) {
+          material.uniforms.uTheme.value = themeSmooth.current
+        }
+        if (material.uniforms.uDarkenOrb) {
+          material.uniforms.uDarkenOrb.value = darkenOrb ? 1.0 : 0.0
         }
         if (material.uniforms.uScrollVelocity) {
           material.uniforms.uScrollVelocity.value = velocity.current
@@ -420,12 +583,18 @@ function InteriorParticles() {
 const inwardVertexShader = `
   uniform float uTime;
   uniform float uSize;
+  uniform float uTheme;
+  uniform float uDarkenOrb;
   attribute float aPhase;
   varying vec3 vColor;
   varying float vAlpha;
 
   void main() {
-    vColor = vec3(1.0, 0.584, 0.463); // Warm coral-orange sparks (#ff9576)
+    // Bronze to Copper transition
+    vec3 bronze = vec3(0.72, 0.45, 0.20); 
+    vec3 copper = vec3(0.44, 0.22, 0.10);
+    vec3 darkBronze = vec3(0.08, 0.04, 0.02);
+    vColor = uDarkenOrb > 0.5 ? darkBronze : mix(bronze, copper, uTheme);
 
     // Slow inward traveling motion
     float speed = 0.12; 
@@ -469,7 +638,7 @@ const inwardFragmentShader = `
   }
 `;
 
-function ExternalSparks() {
+function ExternalSparks({ darkenOrb }: { darkenOrb?: boolean }) {
   const ref = useRef<THREE.Points>(null)
 
   const circleTexture = useMemo(() => {
@@ -502,22 +671,38 @@ function ExternalSparks() {
     return { directions, phases }
   }, [])
 
+  const themeSmooth = useRef(0)
+
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uSize: { value: 0.12 },
+      uTheme: { value: 0 },
+      uDarkenOrb: { value: darkenOrb ? 1.0 : 0.0 },
+      uSize: { value: 0.075 }, // Slightly bigger drifting sparks (up from 0.045)
       uMap: { value: circleTexture },
     }),
-    [circleTexture]
+    [circleTexture, darkenOrb]
   )
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (ref.current) {
       ref.current.rotation.y += 0.002
       
+      const left = orbTransformRef.current?.left ?? 50
+      const targetTheme = (Math.abs(left - 50) < 5 || Math.abs(left - 85) < 5 || Math.abs(left - 15) < 5) ? 1.0 : 0.0
+      themeSmooth.current = THREE.MathUtils.lerp(themeSmooth.current, targetTheme, 0.08)
+
       const material = ref.current.material as THREE.ShaderMaterial
-      if (material && material.uniforms.uTime) {
-        material.uniforms.uTime.value = state.clock.elapsedTime
+      if (material) {
+        if (material.uniforms.uTime) {
+          material.uniforms.uTime.value = state.clock.elapsedTime
+        }
+        if (material.uniforms.uTheme) {
+          material.uniforms.uTheme.value = themeSmooth.current
+        }
+        if (material.uniforms.uDarkenOrb) {
+          material.uniforms.uDarkenOrb.value = darkenOrb ? 1.0 : 0.0
+        }
       }
     }
   })
@@ -553,7 +738,7 @@ interface Spark {
   color: THREE.Color
 }
 
-function InteractiveSparks() {
+function InteractiveSparks({ darkenOrb }: { darkenOrb?: boolean }) {
   const pointsRef = useRef<THREE.Points>(null)
   const sparks = useRef<Spark[]>([])
   const prevPointerDistance = useRef<number>(0)
@@ -593,11 +778,24 @@ function InteractiveSparks() {
       const mouseVelDir = new THREE.Vector3(diffX, diffY, 0).normalize()
       const radialDir = new THREE.Vector3(centerDir.x, centerDir.y, 0)
 
-      const sparkColors = [
-        new THREE.Color("#FFFFFF"),
-        new THREE.Color("#ffd0bc"), // light peach
-        new THREE.Color("#ffb59a"), // warm coral
-        new THREE.Color("#f26f52"), // terracotta red-orange
+      const left = orbTransformRef.current?.left ?? 50
+      const isGold = Math.abs(left - 50) < 5 || Math.abs(left - 85) < 5 || Math.abs(left - 15) < 5
+
+      const sparkColors = darkenOrb ? [
+        new THREE.Color("#0a0503"), // darkest bronze
+        new THREE.Color("#170a02"), // very dark bronze
+        new THREE.Color("#2a1506"), // deep bronze
+        new THREE.Color("#1a0d05"), // dark copper
+      ] : isGold ? [
+        new THREE.Color("#8a4a1e"), // copper
+        new THREE.Color("#B87333"), // bronze
+        new THREE.Color("#CD7F32"), // gold bronze
+        new THREE.Color("#D4A574"), // light gold
+      ] : [
+        new THREE.Color("#B87333"), // bronze
+        new THREE.Color("#CD7F32"), // gold bronze
+        new THREE.Color("#D4A574"), // light gold
+        new THREE.Color("#F5DEB3"), // wheat gold
       ]
 
       for (let i = 0; i < spawnRate; i++) {
@@ -705,7 +903,7 @@ function InteractiveSparks() {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.08}
+        size={0.05} // Slightly bigger interactive trail particles (up from 0.035)
         sizeAttenuation
         vertexColors
         transparent
@@ -718,42 +916,137 @@ function InteractiveSparks() {
   )
 }
 
+// ─── Bronze Interlocking Rings ────────────────────────────────────────────────
+function BronzeRings({ darkenOrb }: { darkenOrb?: boolean }) {
+  const ring1Ref = useRef<THREE.Mesh>(null)
+  const ring2Ref = useRef<THREE.Mesh>(null)
+  const ring3Ref = useRef<THREE.Mesh>(null)
+  const ring4Ref = useRef<THREE.Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (ring1Ref.current) {
+      ring1Ref.current.rotation.x += delta * 0.25
+      ring1Ref.current.rotation.z += delta * 0.12
+    }
+    if (ring2Ref.current) {
+      ring2Ref.current.rotation.y += delta * 0.20
+      ring2Ref.current.rotation.x -= delta * 0.10
+    }
+    if (ring3Ref.current) {
+      ring3Ref.current.rotation.z += delta * 0.18
+      ring3Ref.current.rotation.y -= delta * 0.22
+    }
+    if (ring4Ref.current) {
+      ring4Ref.current.rotation.x -= delta * 0.15
+      ring4Ref.current.rotation.y += delta * 0.18
+    }
+  })
+
+  const bronzeColor = darkenOrb ? "#1a0d05" : "#B87333"
+  const materialProps = {
+    color: bronzeColor,
+    metalness: 1,
+    roughness: 0.12, // Smoother for more premium reflection
+    envMapIntensity: 3.5, // Brighter reflections
+  }
+
+  return (
+    <group>
+      {/* Ring 1: Main horizontal ring */}
+      <mesh ref={ring1Ref}>
+        <torusGeometry args={[1.9, 0.065, 16, 100]} />
+        <meshStandardMaterial {...materialProps} />
+      </mesh>
+      {/* Ring 2: Tilted 60 degrees */}
+      <mesh ref={ring2Ref} rotation={[Math.PI / 3, 0, Math.PI / 6]}>
+        <torusGeometry args={[1.75, 0.06, 16, 100]} />
+        <meshStandardMaterial {...materialProps} />
+      </mesh>
+      {/* Ring 3: Tilted opposite */}
+      <mesh ref={ring3Ref} rotation={[-Math.PI / 4, Math.PI / 3, 0]}>
+        <torusGeometry args={[1.6, 0.055, 16, 100]} />
+        <meshStandardMaterial {...materialProps} />
+      </mesh>
+      {/* Ring 4: Near-vertical ring */}
+      <mesh ref={ring4Ref} rotation={[Math.PI / 2, Math.PI / 5, Math.PI / 4]}>
+        <torusGeometry args={[1.45, 0.05, 16, 100]} />
+        <meshStandardMaterial {...materialProps} />
+      </mesh>
+    </group>
+  )
+}
+
+// ─── Wireframe Cage ───────────────────────────────────────────────────────────
+function WireframeCage({ darkenOrb }: { darkenOrb?: boolean }) {
+  const cageRef = useRef<THREE.Mesh>(null)
+
+  useFrame((_, delta) => {
+    if (cageRef.current) {
+      cageRef.current.rotation.y += delta * 0.08
+      cageRef.current.rotation.x += delta * 0.05
+    }
+  })
+
+  return (
+    <mesh ref={cageRef}>
+      <icosahedronGeometry args={[2.35, 1]} />
+      <meshBasicMaterial
+        color={darkenOrb ? "#0a0503" : "#CD7F32"}
+        wireframe
+        transparent
+        opacity={darkenOrb ? 0.12 : 0.40} // Increased opacity for better visibility
+      />
+    </mesh>
+  )
+}
+
 // ─── Scene Composition ────────────────────────────────────────────────────────
-function AnimatedScene() {
+function AnimatedScene({ disableTransform, scaleOverride = 1, darkenOrb }: { disableTransform?: boolean, scaleOverride?: number, darkenOrb?: boolean }) {
   const groupRef = useRef<THREE.Group>(null)
   const { viewport, size } = useThree()
 
   useFrame(() => {
     if (groupRef.current) {
-      const { left, top, scale } = orbTransformRef.current
-      
-      // Calculate WebGL world offsets
-      const offsetX = left - 50
-      const offsetY = top - 50
-      
-      const x = (offsetX / 100) * viewport.width
-      const y = -(offsetY / 100) * viewport.height
-      
-      // Calculate original scale factor to match the old HTML container size
-      const oldH = Math.min(size.width, size.height) * 0.78 * 2.28
-      const baseScale = oldH / size.height
+      if (disableTransform) {
+        // Calculate base scale to match old container size
+        const oldH = Math.min(size.width, size.height) * 0.78 * 2.28
+        const baseScale = oldH / size.height
+        
+        groupRef.current.position.set(0, 0, 0)
+        groupRef.current.scale.setScalar(baseScale * scaleOverride)
+      } else {
+        const { left, top, scale } = orbTransformRef.current
+        
+        // Calculate WebGL world offsets
+        const offsetX = left - 50
+        const offsetY = top - 50
+        
+        const x = (offsetX / 100) * viewport.width
+        const y = -(offsetY / 100) * viewport.height
+        
+        // Calculate original scale factor to match the old HTML container size
+        const oldH = Math.min(size.width, size.height) * 0.78 * 2.28
+        const baseScale = oldH / size.height
 
-      groupRef.current.position.set(x, y, 0)
-      groupRef.current.scale.setScalar(baseScale * scale)
+        groupRef.current.position.set(x, y, 0)
+        groupRef.current.scale.setScalar(baseScale * scale)
+      }
     }
   })
 
   return (
     <group ref={groupRef}>
-      <BaseSphere />
-      <InteriorParticles />
-      <ExternalSparks />
-      <InteractiveSparks />
+      <BronzeRings darkenOrb={darkenOrb} />
+      <WireframeCage darkenOrb={darkenOrb} />
+      <RippleParticleSphere darkenOrb={darkenOrb} />
+      <InteriorParticles darkenOrb={darkenOrb} />
+      <ExternalSparks darkenOrb={darkenOrb} />
+      <InteractiveSparks darkenOrb={darkenOrb} />
     </group>
   )
 }
 
-export const ParticleSphere = memo(function ParticleSphere() {
+export const ParticleSphere = memo(function ParticleSphere({ disableTransform, scaleOverride, darkenOrb }: { disableTransform?: boolean, scaleOverride?: number, darkenOrb?: boolean }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 7.5], fov: 45 }}
@@ -761,12 +1054,13 @@ export const ParticleSphere = memo(function ParticleSphere() {
       dpr={[1, 1.35]}
       style={{ background: "transparent", pointerEvents: "none" }}
     >
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 8, 5]} intensity={2.5} color="#ffd0bc" />
-      <pointLight position={[-4, 2, 3]} intensity={45} color="#ff9576" />
-      <pointLight position={[4, -2, -3]} intensity={20} color="#f26f52" />
-      <AnimatedScene />
-      <Environment preset="sunset" background={false} environmentIntensity={1.5} />
+      <ambientLight intensity={darkenOrb ? 0.15 : 0.5} />
+      <directionalLight position={[5, 8, 5]} intensity={darkenOrb ? 1.5 : 3.0} color={darkenOrb ? "#172554" : "#D4A574"} />
+      <pointLight position={[-4, 2, 3]} intensity={darkenOrb ? 15 : 40} color={darkenOrb ? "#0f172a" : "#B87333"} />
+      <pointLight position={[4, -2, -3]} intensity={darkenOrb ? 10 : 25} color={darkenOrb ? "#020617" : "#CD7F32"} />
+      <pointLight position={[0, 5, 2]} intensity={darkenOrb ? 5 : 15} color={darkenOrb ? "#0a0503" : "#F5DEB3"} />
+      <AnimatedScene disableTransform={disableTransform} scaleOverride={scaleOverride} darkenOrb={darkenOrb} />
+      <Environment preset="sunset" background={false} environmentIntensity={darkenOrb ? 0.1 : 1.5} />
     </Canvas>
   )
 })

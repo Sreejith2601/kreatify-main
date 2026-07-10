@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from 'next/font/google'
+import { Geist, Geist_Mono, Plus_Jakarta_Sans, Cormorant_Garamond, Outfit, Six_Caps, Bebas_Neue } from 'next/font/google'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -11,6 +11,27 @@ const geistMono = Geist_Mono({
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: '--font-plus-jakarta',
   subsets: ['latin'],
+})
+const cormorantGaramond = Cormorant_Garamond({
+  variable: '--font-cormorant-garamond',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+})
+const outfit = Outfit({
+  variable: '--font-outfit',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+})
+const sixCaps = Six_Caps({
+  variable: '--font-six-caps',
+  subsets: ['latin'],
+  weight: ['400'],
+})
+const bebasNeue = Bebas_Neue({
+  variable: '--font-bebas-neue',
+  subsets: ['latin'],
+  weight: ['400'],
 })
 
 export const metadata: Metadata = {
@@ -53,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} bg-background`}
+      className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${cormorantGaramond.variable} ${outfit.variable} ${sixCaps.variable} ${bebasNeue.variable} bg-background`}
     >
       <body className="font-sans antialiased overflow-x-hidden">
         {children}

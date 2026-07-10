@@ -2,111 +2,87 @@
 
 import { useMemo, useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Environment, MeshTransmissionMaterial } from "@react-three/drei"
+import { Environment } from "@react-three/drei"
 import * as THREE from "three"
 
-function Network() {
-  const pointsRef = useRef<THREE.Points>(null)
+const particleCount = 400
 
-  const { nodes, linePositions } = useMemo(() => {
-    const nodeCount = 90
-    const nodes: THREE.Vector3[] = []
-    const radius = 1.35
-
-    for (let i = 0; i < nodeCount; i++) {
-      // random points inside a sphere
-      const dir = new THREE.Vector3(
-        Math.random() * 2 - 1,
-        Math.random() * 2 - 1,
-        Math.random() * 2 - 1,
-      ).normalize()
-      const r = radius * Math.cbrt(Math.random())
-      nodes.push(dir.multiplyScalar(r))
-    }
-
-    // connect nearby nodes
-    const linePts: number[] = []
-    const threshold = 0.62
-    for (let i = 0; i < nodeCount; i++) {
-      for (let j = i + 1; j < nodeCount; j++) {
-        if (nodes[i].distanceTo(nodes[j]) < threshold) {
-          linePts.push(nodes[i].x, nodes[i].y, nodes[i].z)
-          linePts.push(nodes[j].x, nodes[j].y, nodes[j].z)
-        }
-      }
-    }
-
+function DataSwarm() {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  
+  // We use a dummy object to calculate matrix transformations efficiently
+  const { dummy } = useMemo(() => {
     return {
-      nodes: new Float32Array(nodes.flatMap((n) => [n.x, n.y, n.z])),
-      linePositions: new Float32Array(linePts),
+      dummy: new THREE.Object3D(),
     }
   }, [])
 
-  return (
-    <group>
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[nodes, 3]} />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.05}
-          color="#ffffff"
-          transparent
-          opacity={0.9}
-          sizeAttenuation
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-      <lineSegments>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color="#f0c2ff"
-          transparent
-          opacity={0.35}
-          blending={THREE.AdditiveBlending}
-        />
-      </lineSegments>
-    </group>
-  )
-}
+  // Generate perfect spherical distribution of particles
+  const particles = useMemo(() => {
+    const temp = []
+    const radius = 1.8
+    for (let i = 0; i < particleCount; i++) {
+      // Golden ratio spiral for even distribution
+      const phi = Math.acos(-1 + (2 * i) / particleCount)
+      const theta = Math.sqrt(particleCount * Math.PI) * phi
+      
+      const r = radius * (0.8 + Math.random() * 0.2) // slight variation in radius
 
-function Orb() {
-  const groupRef = useRef<THREE.Group>(null)
+      const x = r * Math.cos(theta) * Math.sin(phi)
+      const y = r * Math.sin(theta) * Math.sin(phi)
+      const z = r * Math.cos(phi)
 
-  useFrame((_, delta) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.18
+      temp.push({ 
+        x, 
+        y, 
+        z, 
+        rotation: Math.random() * Math.PI, 
+        scale: 0.04 + Math.random() * 0.12 
+      })
+    }
+    return temp
+  }, [])
+
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      // Slowly rotate the entire swarm
+      meshRef.current.rotation.y += delta * 0.1
+      meshRef.current.rotation.x += delta * 0.05
+      
+      const t = state.clock.elapsedTime
+      
+      particles.forEach((p, i) => {
+        // Individual particle gentle floating animation
+        const yOffset = Math.sin(t * 0.8 + p.x) * 0.1
+        
+        dummy.position.set(p.x, p.y + yOffset, p.z)
+        // Individual particle rotation
+        dummy.rotation.set(p.rotation + t * 0.2, p.rotation + t * 0.3, p.rotation)
+        dummy.scale.setScalar(p.scale)
+        dummy.updateMatrix()
+        
+        meshRef.current!.setMatrixAt(i, dummy.matrix)
+      })
+      meshRef.current.instanceMatrix.needsUpdate = true
     }
   })
 
   return (
-    <group ref={groupRef} position={[-1.4, 0, 0]}>
-      <mesh>
-        <icosahedronGeometry args={[2, 1]} />
-        <MeshTransmissionMaterial
-          transmission={1}
-          thickness={0.25}
-          roughness={0.05}
-          ior={1.15}
-          chromaticAberration={0.35}
-          anisotropy={0.1}
-          distortion={0.1}
-          distortionScale={0.2}
-          temporalDistortion={0.05}
-          clearcoat={1}
-          clearcoatRoughness={0.02}
-          envMapIntensity={1.5}
-          attenuationColor="#ee6060ff"
-          color="#d76d3cff"
-          transparent
-          opacity={0.5}
-        />
-      </mesh>
-      <Network />
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, particleCount]}>
+      {/* A sharp, faceted geometric crystal shape */}
+      <octahedronGeometry args={[1, 0]} />
+      {/* Emerald & Champagne Gold Material */}
+      <meshPhysicalMaterial
+        color="#094A2D"           // Deep Emerald Green base
+        emissive="#D4AF37"        // Champagne Gold glow
+        emissiveIntensity={0.65}
+        roughness={0.15}
+        metalness={0.8}
+        transmission={0.9}        // Glass-like transmission
+        thickness={0.5}
+        clearcoat={1}
+      />
+    </instancedMesh>
   )
 }
 
@@ -117,12 +93,13 @@ export function GlassOrb() {
       gl={{ alpha: true, antialias: true }}
       dpr={[1, 2]}
     >
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[5, 8, 5]} intensity={2.5} color="#108a1eff" />
-      <pointLight position={[-4, 2, 3]} intensity={40} color="#dc740cff" />
-      <pointLight position={[4, -2, -3]} intensity={15} color="#B8860B" />
-      <Orb />
-      <Environment preset="sunset" background={false} environmentIntensity={1.2} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 8, 5]} intensity={2.5} color="#D4AF37" />
+      <pointLight position={[-4, 2, 3]} intensity={12} color="#094A2D" />
+      <pointLight position={[4, -2, -3]} intensity={8} color="#F9E596" />
+      <DataSwarm />
+      {/* 'city' environment gives great sharp reflections for the metal/glass */}
+      <Environment preset="city" environmentIntensity={0.6} />
     </Canvas>
   )
 }
