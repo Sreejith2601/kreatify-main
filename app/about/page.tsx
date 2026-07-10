@@ -154,25 +154,27 @@ export default function AboutPage() {
           </Link>
           
           {/* Header navigation & Home link */}
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574]/80 hover:text-[#D4A574]" : "text-[#93c5fd]/80 hover:text-[#93c5fd]"}`}
-            >
-              Home
-            </Link>
-            <button
-              onClick={() => setCurrentSlide(0)}
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574] hover:text-[#D4A574]" : "text-[#93c5fd] hover:text-[#93c5fd]"}`}
-            >
-              About
-            </button>
-            <Link
-              href="/services"
-              className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574]/80 hover:text-[#D4A574]" : "text-[#93c5fd]/80 hover:text-[#93c5fd]"}`}
-            >
-              Services
-            </Link>
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <Link
+                href="/"
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574]/80 hover:text-[#D4A574]" : "text-[#93c5fd]/80 hover:text-[#93c5fd]"}`}
+              >
+                Home
+              </Link>
+              <button
+                onClick={() => setCurrentSlide(0)}
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574] hover:text-[#D4A574]" : "text-[#93c5fd] hover:text-[#93c5fd]"}`}
+              >
+                About
+              </button>
+              <Link
+                href="/services"
+                className={`text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-700 cursor-pointer ${currentSlide === 0 ? "text-[#D4A574]/80 hover:text-[#D4A574]" : "text-[#93c5fd]/80 hover:text-[#93c5fd]"}`}
+              >
+                Services
+              </Link>
+            </div>
             <Link
               href="/#contact"
               className="uiverse-btn"

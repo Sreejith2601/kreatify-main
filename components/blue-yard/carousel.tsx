@@ -291,26 +291,28 @@ export function Carousel({ isReady = true }: CarouselProps) {
         <div className="flex items-center justify-between w-full px-6 md:px-8 py-4 pointer-events-auto backdrop-blur-md border-b border-[#B87333]/15 bg-black/30">
           <Logo className="pointer-events-auto select-none text-[16px] font-bold leading-[1.05] tracking-[0.25em] text-[#D4A574]" style={{ fontFamily: 'var(--font-cormorant-garamond)' }} />
           
-          {/* Persistent CTA Button */}
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => navigateToSection(0)}
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
-            >
-              Home
-            </button>
-            <Link 
-              href="/about"
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
-            >
-              About
-            </Link>
-            <Link 
-              href="/services"
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
-            >
-              Services
-            </Link>
+          {/* Persistent Navigation */}
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <button 
+                onClick={() => navigateToSection(0)}
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
+              >
+                Home
+              </button>
+              <Link 
+                href="/about"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
+              >
+                About
+              </Link>
+              <Link 
+                href="/services"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70 hover:text-[#D4A574] transition-colors duration-1000 cursor-pointer"
+              >
+                Services
+              </Link>
+            </div>
             <button
               onClick={() => navigateToSection(2)}
               className="uiverse-btn"
@@ -332,7 +334,7 @@ export function Carousel({ isReady = true }: CarouselProps) {
         {/* Slide 1: Home (Centered Hero) */}
         <motion.section 
           id="home" 
-          className="absolute flex items-center justify-center px-6 pointer-events-auto"
+          className="absolute flex px-6 pointer-events-auto w-full h-full overflow-y-auto overflow-x-hidden"
           initial={false}
           animate={(!isExiting && currentSlide === 0) ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
@@ -341,7 +343,7 @@ export function Carousel({ isReady = true }: CarouselProps) {
           }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="w-full text-left flex flex-col items-start justify-center space-y-4 md:space-y-6 pl-4 sm:pl-8 md:pl-16 lg:pl-24 pt-16 md:pt-0">
+          <div className="w-full min-h-full flex flex-col items-start justify-center space-y-4 md:space-y-6 pl-4 sm:pl-8 md:pl-16 lg:pl-24 py-24 mx-auto max-w-7xl">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.95] text-white/80">
               <span className="font-sans font-bold uppercase tracking-[0.05em] block"><TextReveal text="Elevate" delay={0.1} isReady={isReady} /></span>
               <span className="font-sans font-bold uppercase tracking-[0.05em] block"><TextReveal text="Empower" delay={0.3} isReady={isReady} /></span>
@@ -386,7 +388,7 @@ export function Carousel({ isReady = true }: CarouselProps) {
         {/* Slide 3: Connect (Premium Contact Form) */}
         <motion.section 
           id="connect" 
-          className="absolute flex items-center justify-center px-4 md:px-6 pointer-events-auto w-full h-full"
+          className="absolute px-4 md:px-6 pointer-events-auto w-full h-full overflow-y-auto overflow-x-hidden"
           initial={false}
           animate={(!isExiting && currentSlide === 2) ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
@@ -395,9 +397,9 @@ export function Carousel({ isReady = true }: CarouselProps) {
           }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="w-full min-h-full mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center py-24">
             {/* Left Column: Typography & Info */}
-            <div className="space-y-6 md:space-y-8 pl-0 md:pl-4 pt-16 md:pt-0">
+            <div className="space-y-6 md:space-y-8 pl-0 md:pl-4">
               <h2 className="text-3xl sm:text-4xl md:text-6xl text-[#D4A574] leading-tight">
                 <span className="font-sans font-bold uppercase tracking-[0.05em] block text-lg mb-2 text-white/50"><TextReveal text="Connect With Us" delay={0.1} isReady={isReady} /></span>
                 <span style={{ fontFamily: 'var(--font-cormorant-garamond)' }} className="italic font-medium"><TextReveal text="Let's craft" delay={0.3} isReady={isReady} /></span><br />

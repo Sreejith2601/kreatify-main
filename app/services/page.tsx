@@ -218,25 +218,27 @@ export default function ServicesPage() {
           <Link href="/">
             <Logo className="text-white" />
           </Link>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60 hover:text-white transition cursor-pointer"
-            >
-              Home
-            </Link>
-            <Link
-              href="/about"
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60 hover:text-white transition cursor-pointer"
-            >
-              About
-            </Link>
-            <button
-              onClick={() => setCurrentSlide(0)}
-              className="text-xs font-semibold uppercase tracking-[0.15em] text-white hover:text-white transition cursor-pointer"
-            >
-              Services
-            </button>
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <Link
+                href="/"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60 hover:text-white transition cursor-pointer"
+              >
+                Home
+              </Link>
+              <Link
+                href="/about"
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60 hover:text-white transition cursor-pointer"
+              >
+                About
+              </Link>
+              <button
+                onClick={() => setCurrentSlide(0)}
+                className="text-xs font-semibold uppercase tracking-[0.15em] text-white hover:text-white transition cursor-pointer"
+              >
+                Services
+              </button>
+            </div>
             {/* Dot indicators */}
             <div className="flex items-center gap-2">
               {SLIDES.map((_, idx) => (
@@ -272,7 +274,7 @@ export default function ServicesPage() {
           return (
             <motion.section
               key={slide.number}
-              className="absolute flex items-center justify-center w-full h-full px-4 sm:px-6 md:px-12 lg:px-24 pt-24 md:pt-20 pointer-events-auto overflow-y-auto overflow-x-hidden"
+              className="absolute flex w-full h-full px-4 sm:px-6 md:px-12 lg:px-24 pointer-events-auto overflow-y-auto overflow-x-hidden"
               initial={false}
               animate={currentSlide === i && !isExitingTo ? {
                 rotate: 0, width: "100%", height: "100%", x: 0, y: 0, zIndex: 1, opacity: 1
@@ -287,7 +289,7 @@ export default function ServicesPage() {
               })}
               transition={{ duration: 0.6 }}
             >
-              <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-10 items-center py-24">
 
                 {/* Left: Text */}
                 <div className="lg:col-span-5 space-y-6">
