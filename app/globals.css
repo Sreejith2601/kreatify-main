@@ -369,5 +369,25 @@
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+/* ── Mobile Performance Optimizations ─────────────────────────────────── */
 
+/* Pause the expensive spinning conic-gradient on mobile */
+@media (max-width: 768px) {
+  .blob-card::before {
+    animation-play-state: paused;
+  }
+}
 
+/* Replace backdrop-blur with solid backgrounds on mobile (iOS Safari perf) */
+@media (max-width: 768px) {
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgba(0, 0, 0, 0.65) !important;
+  }
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+  }
+}

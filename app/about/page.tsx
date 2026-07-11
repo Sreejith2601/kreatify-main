@@ -13,6 +13,11 @@ export default function AboutPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isExitingTo, setIsExitingTo] = useState<"" | "home" | "services">("")
   const isTransitioning = useRef(true) // Lock on mount
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
 
   // Prevent scroll inertia on load and prefetch routes
   useEffect(() => {
@@ -215,12 +220,12 @@ export default function AboutPage() {
           initial={false}
           animate={currentSlide === 0 && !isExitingTo ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
-          } : isExitingTo === "home" ? {
-            rotate: -90, width: '20%', height: '20%', x: 200, y: 200, zIndex: -1, opacity: 0
-          } : {
-            rotate: 90, width: '20%', height: '20%', x: -200, y: -200, zIndex: -1, opacity: 0
-          }}
-          transition={{ duration: 0.6 }}
+          } : isExitingTo === "home" ? (
+            isMobile ? { x: 200, opacity: 0, zIndex: -1 } : { rotate: -90, width: '20%', height: '20%', x: 200, y: 200, zIndex: -1, opacity: 0 }
+          ) : (
+            isMobile ? { x: -200, opacity: 0, zIndex: -1 } : { rotate: 90, width: '20%', height: '20%', x: -200, y: -200, zIndex: -1, opacity: 0 }
+          )}
+          transition={{ duration: isMobile ? 0.3 : 0.6 }}
         >
           <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 py-24">
             {/* Left Column: Text Content */}
@@ -256,12 +261,12 @@ export default function AboutPage() {
           initial={false}
           animate={currentSlide === 1 && !isExitingTo ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
-          } : isExitingTo === "services" ? {
-            rotate: 90, width: '20%', height: '20%', x: -200, y: -200, zIndex: -1, opacity: 0
-          } : {
-            rotate: -90, width: '20%', height: '20%', x: 200, y: 200, zIndex: -1, opacity: 0
-          }}
-          transition={{ duration: 0.6 }}
+          } : isExitingTo === "services" ? (
+            isMobile ? { x: -200, opacity: 0, zIndex: -1 } : { rotate: 90, width: '20%', height: '20%', x: -200, y: -200, zIndex: -1, opacity: 0 }
+          ) : (
+            isMobile ? { x: 200, opacity: 0, zIndex: -1 } : { rotate: -90, width: '20%', height: '20%', x: 200, y: 200, zIndex: -1, opacity: 0 }
+          )}
+          transition={{ duration: isMobile ? 0.3 : 0.6 }}
         >
           <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 py-24">
             {/* Left Column: Custom graphic */}

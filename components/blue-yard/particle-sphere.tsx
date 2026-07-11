@@ -6,6 +6,9 @@ import { Environment } from "@react-three/drei"
 import * as THREE from "three"
 import { orbTransformRef } from "./carousel"
 
+// Mobile detection helper — evaluated once at module load
+const getIsMobile = () => typeof window !== "undefined" && window.innerWidth < 768
+
 // ─── 3D Simplex Noise (compact implementation) ──────────────────────────────
 // This generates smooth, organic, cloud-like patterns in 3D space.
 const F3 = 1.0 / 3.0
@@ -289,8 +292,11 @@ function RippleParticleSphere({ darkenOrb }: { darkenOrb?: boolean }) {
     materialRef.current.uniforms.uDarkenOrb.value = darkenOrb ? 1.0 : 0.0
   })
 
-  // Dense geometry for detailed wave displacement
-  const geometry = useMemo(() => new THREE.SphereGeometry(2.3, 128, 128), [])
+  // Dense geometry for detailed wave displacement — reduced on mobile for performance
+  const geometry = useMemo(() => {
+    const segments = getIsMobile() ? 48 : 128
+    return new THREE.SphereGeometry(2.3, segments, segments)
+  }, [])
 
   return (
     <points ref={meshRef}>
@@ -409,7 +415,7 @@ function InteriorParticles({ darkenOrb }: { darkenOrb?: boolean }) {
   }, [])
 
   const { positions, colors } = useMemo(() => {
-    const count = 3500
+    const count = getIsMobile() ? 800 : 3500
     const positions = new Float32Array(count * 3)
     const colors = new Float32Array(count * 3)
     const radius = 2.34
@@ -647,7 +653,7 @@ function ExternalSparks({ darkenOrb }: { darkenOrb?: boolean }) {
   }, [])
 
   const { directions, phases } = useMemo(() => {
-    const count = 2200
+    const count = getIsMobile() ? 500 : 2200
     const directions = new Float32Array(count * 3)
     const phases = new Float32Array(count)
 
@@ -1004,6 +1010,7 @@ function WireframeCage({ darkenOrb }: { darkenOrb?: boolean }) {
 function AnimatedScene({ disableTransform, scaleOverride = 1, darkenOrb }: { disableTransform?: boolean, scaleOverride?: number, darkenOrb?: boolean }) {
   const groupRef = useRef<THREE.Group>(null)
   const { viewport, size } = useThree()
+  const isMobile = useMemo(() => getIsMobile(), [])
 
   useFrame(() => {
     if (groupRef.current) {
@@ -1041,26 +1048,29 @@ function AnimatedScene({ disableTransform, scaleOverride = 1, darkenOrb }: { dis
       <RippleParticleSphere darkenOrb={darkenOrb} />
       <InteriorParticles darkenOrb={darkenOrb} />
       <ExternalSparks darkenOrb={darkenOrb} />
-      <InteractiveSparks darkenOrb={darkenOrb} />
+      {/* Skip InteractiveSparks on mobile — no hover on touch devices */}
+      {!isMobile && <InteractiveSparks darkenOrb={darkenOrb} />}
     </group>
   )
 }
 
 export const ParticleSphere = memo(function ParticleSphere({ disableTransform, scaleOverride, darkenOrb }: { disableTransform?: boolean, scaleOverride?: number, darkenOrb?: boolean }) {
+  const isMobile = useMemo(() => getIsMobile(), [])
   return (
     <Canvas
       camera={{ position: [0, 0, 7.5], fov: 45 }}
-      gl={{ alpha: true, antialias: true }}
-      dpr={[1, 1.35]}
+      gl={{ alpha: true, antialias: !isMobile }}
+      dpr={isMobile ? [1, 1] : [1, 1.35]}
       style={{ background: "transparent", pointerEvents: "none" }}
+      frameloop="always"
     >
       <ambientLight intensity={darkenOrb ? 0.15 : 0.5} />
       <directionalLight position={[5, 8, 5]} intensity={darkenOrb ? 1.5 : 3.0} color={darkenOrb ? "#172554" : "#D4A574"} />
       <pointLight position={[-4, 2, 3]} intensity={darkenOrb ? 15 : 40} color={darkenOrb ? "#0f172a" : "#B87333"} />
-      <pointLight position={[4, -2, -3]} intensity={darkenOrb ? 10 : 25} color={darkenOrb ? "#020617" : "#CD7F32"} />
-      <pointLight position={[0, 5, 2]} intensity={darkenOrb ? 5 : 15} color={darkenOrb ? "#0a0503" : "#F5DEB3"} />
+      {!isMobile && <pointLight position={[4, -2, -3]} intensity={darkenOrb ? 10 : 25} color={darkenOrb ? "#020617" : "#CD7F32"} />}
+      {!isMobile && <pointLight position={[0, 5, 2]} intensity={darkenOrb ? 5 : 15} color={darkenOrb ? "#0a0503" : "#F5DEB3"} />}
       <AnimatedScene disableTransform={disableTransform} scaleOverride={scaleOverride} darkenOrb={darkenOrb} />
-      <Environment preset="sunset" background={false} environmentIntensity={darkenOrb ? 0.1 : 1.5} />
+      {!isMobile && <Environment preset="sunset" background={false} environmentIntensity={darkenOrb ? 0.1 : 1.5} />}
     </Canvas>
   )
 })
