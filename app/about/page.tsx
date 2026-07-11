@@ -246,7 +246,7 @@ export default function AboutPage() {
             <div className="lg:col-span-5 flex justify-center pb-12 lg:pb-0">
               <div className="relative w-full max-w-[400px] h-[250px] md:h-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
                 <img 
-                  src="/team_lightbulb.png" 
+                  src="/team_lightbulb.webp" 
                   alt="Team collaboration around a lightbulb table illustration"
                   className="w-full h-full object-contain rounded-2xl"
                 />
@@ -273,7 +273,7 @@ export default function AboutPage() {
             <div className="lg:col-span-5 flex justify-center order-2 lg:order-1 pt-12 lg:pt-0">
               <div className="relative w-full max-w-[400px] h-[250px] md:h-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
                 <img 
-                  src="/fuzzy_lightbulb.png" 
+                  src="/fuzzy_lightbulb.webp" 
                   alt="Fuzzy neon pink lightbulb 3D model"
                   className="w-full h-full object-contain rounded-2xl"
                 />

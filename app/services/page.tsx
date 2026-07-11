@@ -23,7 +23,7 @@ const SLIDES = [
     accent: "#111827",
     btnTextColor: "text-white",
     capabilities: ["Identity Design", "Brand Positioning", "Logo Systems", "Packaging Design", "Brand Guidelines", "Visual Language"],
-    image: "/branding_magnifier_nobg.png",
+    image: "/branding_magnifier_nobg.webp",
     blendMode: "", // Removed mix-blend-multiply for dark backgrounds
     rotateHover: 1,
   },
@@ -39,7 +39,7 @@ const SLIDES = [
     style: { backgroundImage: "radial-gradient(at 0% 100%, #082f34 0px, transparent 65%), radial-gradient(at 100% 0%, #064047 0px, transparent 65%), radial-gradient(at 70% 80%, rgba(20, 184, 166, 0.15) 0px, transparent 70%)" }, // Deep Obsidian & Teal
     accent: "#0D9488",
     capabilities: ["SEO & Optimization", "Paid Advertising", "Social Media Growth", "Email Marketing", "Analytics & Reporting", "Growth Strategy"],
-    image: "/digital_marketing_nobg.png",
+    image: "/digital_marketing_nobg.webp",
     blendMode: "",
     rotateHover: -1,
   },
@@ -56,7 +56,7 @@ const SLIDES = [
     accent: "#D2733A",
     btnTextColor: "text-white",
     capabilities: ["Web Applications", "Custom CRM Platforms", "API Development", "Dashboard Systems", "Cloud Integration", "AI Automation"],
-    image: "/software_nobg.png",
+    image: "/software_nobg.webp",
     blendMode: "",
     rotateHover: 1,
   },
@@ -72,7 +72,7 @@ const SLIDES = [
     style: { backgroundImage: "radial-gradient(at 0% 100%, #4a0d17 0px, transparent 65%), radial-gradient(at 100% 0%, #6d1020 0px, transparent 65%), radial-gradient(at 50% 50%, rgba(244, 63, 94, 0.15) 0px, transparent 70%)" }, // Deep Crimson & Rose
     accent: "#E11D48",
     capabilities: ["Photography", "Videography", "Motion Graphics", "Copywriting", "Product Content", "Creative Campaigns"],
-    image: "/content_nobg.png",
+    image: "/content_nobg.webp",
     blendMode: "",
     rotateHover: -1,
   },
