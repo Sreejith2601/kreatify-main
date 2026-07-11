@@ -211,7 +211,7 @@ export default function AboutPage() {
 
         {/* Slide 1: Relationships & Innovative Strategies */}
         <motion.section
-          className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+          className="absolute inset-0 flex pointer-events-auto overflow-y-auto overflow-x-hidden"
           initial={false}
           animate={currentSlide === 0 && !isExitingTo ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
@@ -222,7 +222,7 @@ export default function AboutPage() {
           }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 pt-20 lg:pt-0">
+          <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 py-24">
             {/* Left Column: Text Content */}
             <div className="lg:col-span-7 space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">
@@ -238,8 +238,8 @@ export default function AboutPage() {
             </div>
 
             {/* Right Column: Custom graphic */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
+            <div className="lg:col-span-5 flex justify-center pb-12 lg:pb-0">
+              <div className="relative w-full max-w-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center" style={{ aspectRatio: "1/1" }}>
                 <img 
                   src="/team_lightbulb.png" 
                   alt="Team collaboration around a lightbulb table illustration"
@@ -252,7 +252,7 @@ export default function AboutPage() {
 
         {/* Slide 2: Study & Discovery */}
         <motion.section
-          className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+          className="absolute inset-0 flex pointer-events-auto overflow-y-auto overflow-x-hidden"
           initial={false}
           animate={currentSlide === 1 && !isExitingTo ? {
             rotate: 0, width: '100%', height: '100%', x: 0, y: 0, zIndex: 1, opacity: 1
@@ -263,10 +263,10 @@ export default function AboutPage() {
           }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 pt-20 lg:pt-0">
+          <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 py-24">
             {/* Left Column: Custom graphic */}
-            <div className="lg:col-span-5 flex justify-center order-2 lg:order-1">
-              <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
+            <div className="lg:col-span-5 flex justify-center order-2 lg:order-1 pt-12 lg:pt-0">
+              <div className="relative w-full max-w-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center" style={{ aspectRatio: "1/1" }}>
                 <img 
                   src="/fuzzy_lightbulb.png" 
                   alt="Fuzzy neon pink lightbulb 3D model"
