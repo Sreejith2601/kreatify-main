@@ -239,7 +239,7 @@ export default function AboutPage() {
 
             {/* Right Column: Custom graphic */}
             <div className="lg:col-span-5 flex justify-center pb-12 lg:pb-0">
-              <div className="relative w-full max-w-[400px] aspect-video md:aspect-square rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
+              <div className="relative w-full max-w-[400px] h-[250px] md:h-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
                 <img 
                   src="/team_lightbulb.png" 
                   alt="Team collaboration around a lightbulb table illustration"
@@ -266,7 +266,7 @@ export default function AboutPage() {
           <div className="w-full min-h-full mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-6 md:px-12 py-24">
             {/* Left Column: Custom graphic */}
             <div className="lg:col-span-5 flex justify-center order-2 lg:order-1 pt-12 lg:pt-0">
-              <div className="relative w-full max-w-[400px] aspect-video md:aspect-square rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
+              <div className="relative w-full max-w-[400px] h-[250px] md:h-[400px] rounded-3xl overflow-hidden bg-white/10 border border-white/20 shadow-xl shadow-black/20 backdrop-blur-xl p-4 flex items-center justify-center">
                 <img 
                   src="/fuzzy_lightbulb.png" 
                   alt="Fuzzy neon pink lightbulb 3D model"
